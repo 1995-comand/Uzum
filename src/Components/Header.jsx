@@ -8,7 +8,6 @@ export default function Header() {
 
   return (
     <div className="w-full bg-white">
-      {/* Top Bar */}
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between text-sm">
@@ -49,22 +48,15 @@ export default function Header() {
           </div>
         </div>
       </div>
-
-      {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center gap-8">
-          {/* Logo */}
           <a href="/" className="flex items-center gap-2">
             <img src={uzumLogo} alt="Uzum Market" className="h-8" />
           </a>
-
-          {/* Catalog Button */}
           <button className="flex items-center gap-2 px-6 py-3 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition font-medium">
             <Package size={20} />
             Каталог
           </button>
-
-          {/* Search Bar */}
           <div className="flex-1 relative">
             <input
               type="text"
@@ -77,8 +69,6 @@ export default function Header() {
               <Search size={20} />
             </button>
           </div>
-
-          {/* User Actions */}
           <div className="flex items-center gap-6">
             <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition">
               <User size={24} />
@@ -97,8 +87,6 @@ export default function Header() {
           </div>
         </div>
       </div>
-
-      {/* Category Navigation */}
       <div className="border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-8 py-3 overflow-x-auto">
