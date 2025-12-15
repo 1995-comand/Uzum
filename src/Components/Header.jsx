@@ -1,17 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, ChevronDown, ShoppingCart, Heart, User, Search, Package, X, LogOut } from 'lucide-react';
 import uzumLogo from '../assets/uzumlogo.png';
 
-export default function Header() {
-  const [selectedLanguage, setSelectedLanguage] = useState('Русский');
-  const [searchQuery, setSearchQuery] = useState('');
+import { Link } from 'react-router-dom';
+import { useContext } from 'react';
+import { AppContext } from '../context/AppContext';
+
+export default function Header({ searchQuery, setSearchQuery }) {
+  const { t, i18n } = useTranslation();
+  const { cartItems, favoriteItems } = useContext(AppContext);
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language || 'ru');
+
+  useEffect(() => {
+    if (i18n.language) {
+      const langMap = {
+        'ru': 'Русский',
+        'uz': "O'zbekcha",
+        'en': 'English'
+      }
+    }
+  }, [i18n.language]);
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    setSelectedLanguage(lang);
+  }
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [step, setStep] = useState(1);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  
+  const [filteredData, setfilteredData] = useState('')
+  const [loading, setloading] = useState(false)
+
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const saved = localStorage.getItem('uzumUser');
     return saved ? true : false;
@@ -25,13 +48,13 @@ export default function Header() {
   const formatPhoneNumber = (value) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length > 12) return phoneNumber;
-    
+
     let formatted = '+998';
     if (numbers.length > 3) formatted += ' ' + numbers.slice(3, 5);
     if (numbers.length > 5) formatted += ' ' + numbers.slice(5, 8);
     if (numbers.length > 8) formatted += '-' + numbers.slice(8, 10);
     if (numbers.length > 10) formatted += '-' + numbers.slice(10, 12);
-    
+
     return formatted;
   };
 
@@ -63,9 +86,9 @@ export default function Header() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
           alert('Код отправлен на вашу почту!');
           setStep(3);
@@ -88,9 +111,9 @@ export default function Header() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: verificationCode })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         const userData = {
           username,
@@ -98,10 +121,10 @@ export default function Header() {
           phone: phoneNumber
         };
         localStorage.setItem('uzumUser', JSON.stringify(userData));
-        
+
         setCurrentUser(userData);
         setIsLoggedIn(true);
-        
+
         alert('Вы успешно зарегистрированы!');
         console.log('User data:', userData);
         setIsLoginOpen(false);
@@ -121,7 +144,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem('uzumUser');
-    
+
     setIsLoggedIn(false);
     setCurrentUser(null);
     setIsProfileOpen(false);
@@ -145,6 +168,21 @@ export default function Header() {
     }
   };
 
+  async () => {
+    try {
+      const req = await fetch('')
+      const res = await req.json()
+      setloading(true)
+      setfilteredData(res)
+      console.log(res)
+
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setloading(false)
+    }
+  }
+
   return (
     <>
       <div className="w-full bg-white">
@@ -154,35 +192,35 @@ export default function Header() {
               <div className="flex items-center gap-6">
                 <button className="flex items-center gap-1 text-gray-700 hover:text-purple-600 transition">
                   <MapPin size={16} />
-                  Ташкент
+                  {t('city')}
                   <ChevronDown size={16} />
                 </button>
                 <a href="#" className="text-gray-700 hover:text-purple-600 transition">
-                  Пункты выдачи
+                  {t('pickup_points')}
                 </a>
               </div>
-              
+
               <div className="flex items-center gap-6">
                 <a href="#" className="text-purple-600 hover:text-purple-700 transition">
-                  Стать продавцом
+                  {t('become_seller')}
                 </a>
                 <a href="#" className="text-purple-600 hover:text-purple-700 transition">
-                  Открыть пункт выдачи
+                  {t('open_pickup_point')}
                 </a>
                 <a href="#" className="text-gray-700 hover:text-purple-600 transition">
-                  Вопрос-ответ
+                  {t('faq')}
                 </a>
                 <a href="#" className="text-gray-700 hover:text-purple-600 transition">
-                  Мои заказы
+                  {t('my_orders')}
                 </a>
-                <select 
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                <select
+                  value={i18n.language}
+                  onChange={(e) => changeLanguage(e.target.value)}
                   className="text-gray-700 hover:text-purple-600 cursor-pointer bg-transparent border-none outline-none"
                 >
-                  <option value="Русский">🇷🇺 Русский</option>
-                  <option value="O'zbekcha">🇺🇿 O'zbekcha</option>
-                  <option value="English">🇬🇧 English</option>
+                  <option value="ru">🇷🇺 Русский</option>
+                  <option value="uz">🇺🇿 O'zbekcha</option>
+                  <option value="en">🇬🇧 English</option>
                 </select>
               </div>
             </div>
@@ -194,29 +232,29 @@ export default function Header() {
             <a href="/" className="flex items-center gap-2">
               <img src={uzumLogo} alt="Uzum Market" className="h-8" />
             </a>
-            
+
             <button className="flex items-center gap-2 px-6 py-3 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition font-medium">
               <Package size={20} />
-              Каталог
+              {t('catalog')}
             </button>
-            
+
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Искать товары и категории"
+                placeholder={t('search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition"
               />
+
               <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-600">
                 <Search size={20} />
               </button>
             </div>
 
             <div className="flex items-center gap-6">
-              {/* Profile button - Login qilgan bo'lsa */}
               {isLoggedIn ? (
-                <button 
+                <button
                   onClick={() => setIsProfileOpen(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition"
                 >
@@ -224,25 +262,37 @@ export default function Header() {
                   <span className="font-medium">{currentUser?.username}</span>
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => setIsLoginOpen(true)}
                   className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition"
                 >
                   <User size={24} />
-                  <span className="text-xs">Войти</span>
+                  <span className="text-xs">{t('login')}</span>
                 </button>
               )}
-              
-              <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition relative">
+
+
+              <Link to="/izbrannoe" className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition relative">
                 <Heart size={24} />
-                <span className="text-xs">Избранное</span>
-              </button>
-              
-              <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition relative">
+                <span className="text-xs">{t('favorites')}</span>
+                {favoriteItems.length > 0 && (
+                  <span className="absolute -top-1 right-[10px] bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {favoriteItems.length}
+                  </span>
+                )}
+              </Link>
+
+              <Link to="/karzina" className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition relative">
                 <ShoppingCart size={24} />
-                <span className="text-xs">Корзина</span>
-              </button>
+                <span className="text-xs">{t('cart')}</span>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 right-2 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {cartItems.length}
+                  </span>
+                )}
+              </Link>
             </div>
+
           </div>
         </div>
 
@@ -251,50 +301,50 @@ export default function Header() {
             <div className="flex items-center gap-8 py-3 overflow-x-auto">
               <a href="#" className="flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap font-medium">
                 <img className='w-[24px]' src="https://static.uzum.uz/fast_categories/Topsales.png" alt="" />
-                Товары недели
+                {t('products_of_week')}
               </a>
               <a href="#" className="flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
                 <img className='w-[24px]' src="https://static.uzum.uz/baner/feshn3110.png" alt="" />
-                Зимняя коллекция
+                {t('winter_collection')}
               </a>
               <a href="#" className="flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
                 <img className='w-[24px]' src="https://static.uzum.uz/baner/hobbi2110.png" alt="" />
-                Хобби и творчество
+                {t('hobbies')}
               </a>
               <a href="#" className="flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
                 <img className='w-[24px]' src="https://static.uzum.uz/baner/smart2010.png" alt="" />
-                Смартфоны
+                {t('smartphones')}
               </a>
               <a href="#" className="text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
-                Туризм, рыбалка и охота
+                {t('tourism')}
               </a>
               <a href="#" className="text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
-                Электроника
+                {t('electronics')}
               </a>
               <a href="#" className="text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
-                Бытовая техника
+                {t('appliances')}
               </a>
               <a href="#" className="text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
-                Одежда
+                {t('clothing')}
               </a>
               <a href="#" className="text-sm text-gray-700 hover:text-purple-600 transition whitespace-nowrap">
-                Обувь
+                {t('shoes')}
               </a>
               <button className="text-sm text-purple-600 hover:text-purple-700 transition whitespace-nowrap font-medium">
-                Ещё
+                {t('more')}
                 <ChevronDown size={16} className="inline ml-1" />
               </button>
             </div>
           </div>
         </div>
       </div>
-      
+
       {isLoginOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 absolute inset-0 bg-black/70 pointer-events-auto bg-opacity-30 flex items-center justify-center animate-fadeIn"
           onClick={handleOverlayClick}
         >
-          <div 
+          <div
             className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
@@ -323,7 +373,7 @@ export default function Header() {
               </div>
 
               <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
-                {step === 1 ? 'Войти в Uzum Market' : step === 2 ? 'Завершить регистрацию' : 'Подтвердите Email'}
+                {step === 1 ? t('login_title') : step === 2 ? t('complete_registration') : t('verify_email')}
               </h2>
 
               {step === 1 && (
@@ -342,18 +392,15 @@ export default function Header() {
                     onClick={handleGetCode}
                     className="w-full bg-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-purple-700 transition transform hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    Получить код
+                    {t('get_code')}
                   </button>
                   <div className="mt-6 text-center">
                     <p className="text-sm text-gray-500">
-                      Продолжая, я соглашаюсь с{' '}
-                      <a href="#" className="text-purple-600 hover:underline">политикой обработки персональных данных</a>
-                      {' '}и{' '}
-                      <a href="#" className="text-purple-600 hover:underline">офертой Uzum ID</a>
+                      {t('policy_agreement')}
                     </p>
                   </div>
                   <div className="mt-4 text-center">
-                    <a href="#" className="text-sm text-purple-600 hover:underline">Что такое Uzum ID?</a>
+                    <a href="#" className="text-sm text-purple-600 hover:underline">{t('what_is_uzum_id')}</a>
                   </div>
                 </>
               )}
@@ -361,10 +408,10 @@ export default function Header() {
               {step === 2 && (
                 <>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Имя пользователя</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('username')}</label>
                     <input
                       type="text"
-                      placeholder="Введите имя"
+                      placeholder={t('enter_name')}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition text-lg"
@@ -385,13 +432,13 @@ export default function Header() {
                       onClick={() => setStep(1)}
                       className="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-semibold text-lg hover:bg-gray-300 transition"
                     >
-                      Назад
+                      {t('back')}
                     </button>
                     <button
                       onClick={handleFinalSubmit}
                       className="flex-1 bg-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-purple-700 transition transform hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      Отправить код
+                      {t('send_code')}
                     </button>
                   </div>
                 </>
@@ -401,11 +448,11 @@ export default function Header() {
                 <>
                   <div className="mb-4 text-center">
                     <p className="text-sm text-gray-600 mb-4">
-                      Код отправлен на <span className="font-semibold text-purple-600">{email}</span>
+                      {t('code_sent_to')} <span className="font-semibold text-purple-600">{email}</span>
                     </p>
                   </div>
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Введите код</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('enter_code')}</label>
                     <input
                       type="text"
                       placeholder="000000"
@@ -420,21 +467,21 @@ export default function Header() {
                       onClick={() => setStep(2)}
                       className="flex-1 bg-gray-200 text-gray-700 py-4 rounded-xl font-semibold text-lg hover:bg-gray-300 transition"
                     >
-                      Назад
+                      {t('back')}
                     </button>
                     <button
                       onClick={handleVerifyCode}
                       className="flex-1 bg-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-purple-700 transition transform hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      Подтвердить
+                      {t('confirm')}
                     </button>
                   </div>
                   <div className="mt-4 text-center">
-                    <button 
+                    <button
                       onClick={handleFinalSubmit}
                       className="text-sm text-purple-600 hover:underline"
                     >
-                      Отправить код повторно
+                      {t('resend_code')}
                     </button>
                   </div>
                 </>
@@ -444,11 +491,11 @@ export default function Header() {
         </div>
       )}
       {isProfileOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 absolute inset-0 bg-black/70 pointer-events-auto bg-opacity-30 flex items-center justify-center animate-fadeIn"
           onClick={handleProfileOverlayClick}
         >
-          <div 
+          <div
             className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
@@ -468,7 +515,7 @@ export default function Header() {
               </div>
               <div className="space-y-4 mb-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Имя пользователя</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('username')}</p>
                   <p className="text-lg font-semibold text-gray-800">{currentUser?.username}</p>
                 </div>
 
@@ -478,7 +525,7 @@ export default function Header() {
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Телефон</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('phone')}</p>
                   <p className="text-lg font-semibold text-gray-800">{currentUser?.phone}</p>
                 </div>
               </div>
@@ -487,11 +534,13 @@ export default function Header() {
                 className="w-full bg-red-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-red-600 transition flex items-center justify-center gap-2"
               >
                 <LogOut size={20} />
-                Выйти
+                {t('logout')}
               </button>
             </div>
           </div>
+
         </div>
+
       )}
 
       <style>{`

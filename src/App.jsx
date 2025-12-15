@@ -1,19 +1,13 @@
-import React from "react";
-import Cardbek from "./Components/Cardbek.jsx";
 import { Outlet } from "react-router-dom";
-import ProductDetail from "./Components/ProductDetail.jsx";
-import Header from "./Components/Header.jsx";
-
-
+import Home from "./Pages/Home.jsx"
 
 const App = () => {
-  return <div>App
-      <Header/>
-    <Cardbek/>
-    <Outlet />
-    <ProductDetail/>
-  
-  </div>;
+  return (
+    <div>
+     <Home/>
+
+    </div>
+  );
 };
 
 export default App;
