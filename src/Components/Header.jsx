@@ -445,7 +445,7 @@ export default function Header() {
       )}
       {isProfileOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center animate-fadeIn"
+          className="fixed inset-0 z-50 absolute inset-0 bg-black/70 pointer-events-auto bg-opacity-30 flex items-center justify-center animate-fadeIn"
           onClick={handleProfileOverlayClick}
         >
           <div 
