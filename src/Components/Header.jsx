@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, ChevronDown, ShoppingCart, Heart, User, Search, Package, X } from 'lucide-react';
+import { MapPin, ChevronDown, ShoppingCart, Heart, User, Search, Package, X, LogOut } from 'lucide-react';
 import uzumLogo from '../assets/uzumlogo.png';
 
 export default function Header() {
@@ -11,6 +11,16 @@ export default function Header() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const saved = localStorage.getItem('uzumUser');
+    return saved ? true : false;
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('uzumUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const formatPhoneNumber = (value) => {
     const numbers = value.replace(/\D/g, '');
@@ -41,7 +51,7 @@ export default function Header() {
       console.log('Phone:', phoneNumber);
       setStep(2);
     } else {
-      alert('Iltimos, to\'liq telefon raqamini kiriting');
+      alert('Пожалуйста, введите полный номер телефона');
     }
   };
 
@@ -57,17 +67,17 @@ export default function Header() {
         const data = await response.json();
         
         if (data.success) {
-          alert('Kod emailingizga yuborildi!');
+          alert('Код отправлен на вашу почту!');
           setStep(3);
         } else {
-          alert(data.message || 'Xatolik yuz berdi');
+          alert(data.message || 'Произошла ошибка');
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Server bilan bog\'lanishda xatolik');
+        alert('Ошибка подключения к серверу');
       }
     } else {
-      alert('Iltimos, barcha maydonlarni to\'ldiring');
+      alert('Пожалуйста, заполните все поля');
     }
   };
 
@@ -82,8 +92,18 @@ export default function Header() {
       const data = await response.json();
       
       if (data.success) {
-        alert('Muvaffaqiyatli ro\'yxatdan o\'tdingiz!');
-        console.log('User data:', { username, email, phoneNumber });
+        const userData = {
+          username,
+          email,
+          phone: phoneNumber
+        };
+        localStorage.setItem('uzumUser', JSON.stringify(userData));
+        
+        setCurrentUser(userData);
+        setIsLoggedIn(true);
+        
+        alert('Вы успешно зарегистрированы!');
+        console.log('User data:', userData);
         setIsLoginOpen(false);
         setStep(1);
         setPhoneNumber('');
@@ -91,12 +111,21 @@ export default function Header() {
         setEmail('');
         setVerificationCode('');
       } else {
-        alert(data.message || 'Noto\'g\'ri kod');
+        alert(data.message || 'Неверный код');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Server bilan bog\'lanishda xatolik');
+      alert('Ошибка подключения к серверу');
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('uzumUser');
+    
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setIsProfileOpen(false);
+    alert('Вы вышли из аккаунта');
   };
 
   const handleOverlayClick = (e) => {
@@ -107,6 +136,12 @@ export default function Header() {
       setUsername('');
       setEmail('');
       setVerificationCode('');
+    }
+  };
+
+  const handleProfileOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setIsProfileOpen(false);
     }
   };
 
@@ -179,13 +214,24 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-6">
-              <button 
-                onClick={() => setIsLoginOpen(true)}
-                className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition"
-              >
-                <User size={24} />
-                <span className="text-xs">Войти</span>
-              </button>
+              {/* Profile button - Login qilgan bo'lsa */}
+              {isLoggedIn ? (
+                <button 
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition"
+                >
+                  <User size={20} />
+                  <span className="font-medium">{currentUser?.username}</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsLoginOpen(true)}
+                  className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition"
+                >
+                  <User size={24} />
+                  <span className="text-xs">Войти</span>
+                </button>
+              )}
               
               <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-purple-600 transition relative">
                 <Heart size={24} />
@@ -242,7 +288,7 @@ export default function Header() {
           </div>
         </div>
       </div>
-
+      
       {isLoginOpen && (
         <div 
           className="fixed inset-0 z-50 absolute inset-0 bg-black/70 pointer-events-auto bg-opacity-30 flex items-center justify-center animate-fadeIn"
@@ -393,6 +439,56 @@ export default function Header() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {isProfileOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center animate-fadeIn"
+          onClick={handleProfileOverlayClick}
+        >
+          <div 
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsProfileOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="p-8">
+              <div className="flex flex-col items-center mb-8">
+                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mb-4">
+                  <User size={40} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">{currentUser?.username}</h2>
+              </div>
+              <div className="space-y-4 mb-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Имя пользователя</p>
+                  <p className="text-lg font-semibold text-gray-800">{currentUser?.username}</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Email</p>
+                  <p className="text-lg font-semibold text-gray-800">{currentUser?.email}</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">Телефон</p>
+                  <p className="text-lg font-semibold text-gray-800">{currentUser?.phone}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full bg-red-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-red-600 transition flex items-center justify-center gap-2"
+              >
+                <LogOut size={20} />
+                Выйти
+              </button>
             </div>
           </div>
         </div>
