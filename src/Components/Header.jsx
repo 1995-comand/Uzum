@@ -118,6 +118,7 @@ export default function Header({ searchQuery, setSearchQuery }) {
         const userData = {
           username,
           email,
+          
           phone: phoneNumber
         };
         localStorage.setItem('uzumUser', JSON.stringify(userData));
