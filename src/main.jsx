@@ -11,6 +11,8 @@ import Karzina from "./Pages/Karzina.jsx";
 import Izbrannoe from "./Pages/Izbrannoe.jsx";
 import { AppProvider } from "./context/AppContext.jsx";
 import Loading from "./Components/Loading.jsx";
+import UzumSeller from "./Pages/UzumSeller.jsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -34,11 +36,15 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: "/seller",
+    element: <UzumSeller />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Suspense  fallback={Loading}>
+    <Suspense fallback={<Loading />}>
       <AppProvider>
         <RouterProvider router={router} />
       </AppProvider>
