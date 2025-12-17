@@ -10,7 +10,7 @@ import ProductDetail from "./Components/ProductDetail.jsx";
 import Karzina from "./Pages/Karzina.jsx";
 import Izbrannoe from "./Pages/Izbrannoe.jsx";
 import { AppProvider } from "./context/AppContext.jsx";
-
+import Loading from "./Components/Loading.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -38,7 +38,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Suspense fallback="Loading...">
+    <Suspense  fallback={Loading}>
       <AppProvider>
         <RouterProvider router={router} />
       </AppProvider>

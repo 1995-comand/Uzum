@@ -104,6 +104,8 @@ export default function Header({ searchQuery, setSearchQuery }) {
     }
   };
 
+ 
+
   const handleVerifyCode = async () => {
     try {
       const response = await fetch('http://localhost:3000/api/verify-code', {
@@ -168,6 +170,9 @@ export default function Header({ searchQuery, setSearchQuery }) {
     }
   };
 
+  
+  console.log(loading)
+
   async () => {
     try {
       const req = await fetch('')
@@ -182,6 +187,7 @@ export default function Header({ searchQuery, setSearchQuery }) {
       setloading(false)
     }
   }
+
 
   return (
     <>
